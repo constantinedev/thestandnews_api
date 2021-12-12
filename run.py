@@ -1,16 +1,21 @@
 import re, io, sys, requests, subprocess, json, sqlite3, mysql.connector, datetime
 
 from os.path import exists
+from stem import Signal
+from stem.control import Controller
 
 payload = {}
 headers = {}
 
-proxy_session = requests.session()
-proxy_session.proxies = {
-    'http': 'socks5://127.0.0.1:9050',
-    'https': 'socks5://127.0.0.1:9050'
-}
-url = 'https://api.thestandnews.com/api/app/v1/'
+def proxy():
+	proxy_session = requests.session()
+	proxy_session.proxies = {
+		'http': 'socks5://127.0.0.1:9050',
+		'https': 'socks5://127.0.0.1:9050'
+	}
+	return proxy_session
+
+#url = 'https://api.thestandnews.com/api/app/v1/'
 x = datetime.datetime.now()
 dateTime = x.strftime("%d-%m-%Y_%H-%M-%S")
 
