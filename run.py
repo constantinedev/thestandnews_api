@@ -5,16 +5,20 @@ from os.path import exists
 payload = {}
 headers = {}
 
-proxy = {'socks5', '127.0.0.1:9050'}
+proxy_session = requests.session()
+proxy_session.proxies = {
+    'http': 'socks5://127.0.0.1:9050',
+    'https': 'socks5://127.0.0.1:9050'
+}
 url = 'https://api.thestandnews.com/api/app/v1/'
 x = datetime.datetime.now()
 dateTime = x.strftime("%d-%m-%Y_%H-%M-%S")
 
 api_url = [
-    #1
+    #2
     'https://api.thestandnews.com/api/app/v1/author',
     'https://api.thestandnews.com/api/app/v1/category',
-    #2
+    #1
     'https://api.thestandnews.com/api/app/v1/article/type/headline',
     'https://api.thestandnews.com/api/app/v1/article/type/editor_pick',
     'https://api.thestandnews.com/api/app/v1/article/type/popular',
