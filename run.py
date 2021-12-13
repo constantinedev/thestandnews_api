@@ -8,11 +8,7 @@ payload = {}
 headers = {}
 
 def proxy():
-	proxy_session = requests.session()
-	proxy_session.proxies = {
-		'http': 'socks5://127.0.0.1:9050',
-		'https': 'socks5://127.0.0.1:9050'
-	}
+	
 	return proxy_session
 
 #url = 'https://api.thestandnews.com/api/app/v1/'
@@ -47,6 +43,11 @@ def  main():
     dir = 'output/'
     file_exists = exists(dir)
     api_count = len(api_url)
+    
+    proxy_session = requests.session()
+    proxy_session.proxies = {}
+    proxy_session.proxies['https'] = 'socks5h://127.0.0.1:9050'
+        
     if file_exists == 'False':
         subprocess.call('cp -R output_bk/ output/')
     else:
@@ -54,6 +55,9 @@ def  main():
             print('DONE! ' + api_url[count])
             responser = requests.get(api_url[count], headers=headers, data=payload)
             JsonData = responser.text
+            tor_responser = proxy_session.get(api_url[count], headers=headers, data=payload)
+            tor_JsonData = tor_responser.text
+            #print(tor_JsonData)
             fileName = dateTime + '_' + api_name[count] + '.json'
             dir_checker = str(dir + api_name[count])
             checker = exists(dir_checker)
