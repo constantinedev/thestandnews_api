@@ -7,10 +7,6 @@ from stem.control import Controller
 payload = {}
 headers = {}
 
-def proxy():
-	
-	return proxy_session
-
 #url = 'https://api.thestandnews.com/api/app/v1/'
 x = datetime.datetime.now()
 dateTime = x.strftime("%d-%m-%Y_%H-%M-%S")
