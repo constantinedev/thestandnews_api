@@ -60,7 +60,7 @@ def  main():
             dir_checker = str(dir + api_name[count])
             checker = exists(dir_checker)
             if checker == True:
-                f = open(dir_checker + '/' + fileName, 'w', encoding="utf8")
+                f = open(dir_checker + '/' + fileName, 'w', encoding="utf-8")
                 f.writelines(JsonData)
                 f.close()
                 responser.close()
@@ -76,7 +76,7 @@ def payloader():
         fileName = str(countPage) + dateDate + dateTime + '.json'
         checker = exists(dump_dir)
         if checker == True:
-            f = open('output/article/pages/' + fileName, 'w', encoding="utf8")
+            f = open('output/article/pages/' + fileName, 'w', encoding="utf-8")
             f.writelines(payload_result)
             f.close()
             responser.close()
