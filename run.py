@@ -1,4 +1,4 @@
-import re, io, sys, requests, subprocess, json, sqlite3, mysql.connector, datetime, schedule, time
+import re, io, sys, requests, subprocess, json, sqlite3, mysql.connector, datetime, schedule, time, threading
 
 from os.path import exists
 
@@ -10,79 +10,79 @@ headers = {
     "Content-Type": "application/json; charset=utf-8"
 }
 
-x = datetime.datetime.now()
-dateDate = x.strftime('_%d-%m-%Y_')
-dateTime = x.strftime('%H-%M-%S')
+tor_proxy = requests.session()
+tor_proxy.proxies = {}
+tor_proxy.proxies['http'] = 'socks5://127.0.0.1:9050'
+tor_proxy.proxies['https'] = 'socks5://127.0.0.1:9050'
 
-tor_proxy = dict(
-    http = 'socks5://127.0.0.1:9050',
-    https = 'socks5://127.0.0.1:9050'
-)
+APIURL = 'https://api.thestandnews.com/v1/'
 
-api_url = [
-    #2
-    'https://api.thestandnews.com/api/app/v1/author',
-    'https://api.thestandnews.com/api/app/v1/category',
-    #1
-    'https://api.thestandnews.com/api/app/v1/article/type/headline',
-    'https://api.thestandnews.com/api/app/v1/article/type/editor_pick',
-    'https://api.thestandnews.com/api/app/v1/article/type/popular',
-    #3
-    'https://api.thestandnews.com/v1/article'
-]
+api_url = {
+    # 2
+    'author': 'author/',
+    'category': 'category/',
+    # 1
+    'headline': 'article/type/headline/',
+    'editor_pick': 'article/type/editor_pick/',
+    'popular': 'article/type/popular/',
+    # 3
+    'article': 'article/pages/'
+}
 
-api_name = [
-    #2
-    'author',
-    'category',
-    #1
-    'hendline',
-    'editor_pick',
-    'popular',
-    #3
-    'article'
-]
+APIURL_LIST = list(api_url)
 
-def  main():
-    dir = 'output/'
-    file_exists = exists(dir)
-    api_count = len(api_url)
-        
-    if file_exists == 'False':
-        command_line = 'cp -R output_bk/ output/'
-        subprocess.call([command_line], shell=False, check=True)
-        return main()
-    else:
-        for count in range(0, api_count):
-            responser = requests.get(str(api_url[count]), headers=headers, data=payload) # proxies=tor_proxy,
+def main():
+    for count in range(0, len(APIURL_LIST)):
+        timer = datetime.datetime.now()
+        if count < 5 :
+            URL = api_url[APIURL_LIST[int(count)]]
+            DIR = APIURL_LIST[int(count)]
+            dateDate = timer.strftime('_%d-%m-%Y_')
+            dateTime = timer.strftime('%H-%M-%S')
+            responser = requests.get(str(APIURL + URL), headers=headers, data=payload)  # proxies=tor_proxy,
             JsonData = responser.text
-            fileName = api_name[count] + dateDate + dateTime + '.json'
-            dir_checker = str(dir + api_name[count])
-            checker = exists(dir_checker)
-            if checker == True:
-                f = open(dir_checker + '/' + fileName, 'w', encoding="utf-8")
+            fileName = DIR + dateDate + dateTime + '.json'
+            dir_checker = 'output/' + DIR + '/'
+            if responser.status_code == 200:
+                f = open(str(dir_checker) + str(fileName), 'w', encoding="utf8")
                 f.writelines(JsonData)
                 f.close()
                 responser.close()
-            print('DONE! ' + api_url[count] + ':' + str(responser.status_code))
+                print('DONE! ' + str(APIURL + api_url[APIURL_LIST[int(count)]]) + ':' + str(responser.status_code))
+            else:
+                break
+        elif count == 5:
+            dateDate = timer.strftime('_%d-%m-%Y_')
+            dateTime = timer.strftime('%H-%M-%S')
+            req = requests.get('https://api.thestandnews.com/v1/article', headers=headers, data=payload)
+            check_count = req.text
+            check_json = json.loads(check_count)
+            article_meta = check_json['meta']
+            article_count = article_meta['total_count']
+            article_count_page = str(article_count/20 + 1)
+            print('Now Totla Page of Article are: ' + article_count_page)
             
-def payloader():
-    dump_dir = 'output/article/pages/'
-    api_url = 'https://api.thestandnews.com/v1/article/pages/' 
-    strartPageINT = input("start page: ")
-    for countPage in range(int(strartPageINT), 8000):
-        responser = requests.get(api_url + str(countPage), headers=headers, data=payload) # , proxies=tor_proxy
-        payload_result = responser.text
-        fileName = str(countPage) + dateDate + dateTime + '.json'
-        checker = exists(dump_dir)
-        if checker == True:
-            f = open('output/article/pages/' + fileName, 'w', encoding="utf-8")
-            f.writelines(payload_result)
-            f.close()
-            responser.close()
-        print('DONE! ' + api_url + str(countPage) + ':' + str(responser.status_code))
-        #time.sleep(1200)
-        
+            # strartPageINT = 1
+            # EndPageINT = int(article_count_page)
+            
+            strartPageINT = input("start page: ")
+            EndPageINT = input("end page<+1>: ")
+            for num in range(int(strartPageINT), int(EndPageINT)):
+                URL = api_url[APIURL_LIST[int(count)]]
+                DIR = APIURL_LIST[int(count)]
+                responser = requests.get(str(APIURL + URL + str(num)), headers=headers, data=payload)  # proxies=tor_proxy,
+                JsonData = responser.text
+                fileName = DIR + '_' + str(num) + dateDate + dateTime + '.json'
+                dir_checker = 'output/' + DIR + '/pages/'
+                if responser.status_code == 200:
+                    f = open(str(dir_checker) + str(fileName), 'w', encoding="utf8")
+                    f.writelines(JsonData)
+                    f.close()
+                    responser.close()
+                    print('DONE! ' + str(APIURL + api_url[APIURL_LIST[int(count)]] + str(num)) + ':' + str(responser.status_code))
+                else:
+                    responser = requests.get(str(APIURL + URL + str(num)), headers=headers, data=payload)
+                    return responser()
+
 if __name__ == '__main__':
     main()
-    payloader()
